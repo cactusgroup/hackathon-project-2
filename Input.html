@@ -1,0 +1,210 @@
+<html>
+  <head>
+    <title>CUNY Discourse | Note Input</title>
+    <link rel="stylesheet"
+          type="text/css"
+          href="css/bulma.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="css/font-awesome.min.css" />
+    <script src="js/jquery-3.1.1.js"></script>
+    <script>
+      function submitData() {
+        $('.modal').removeClass('is-active');
+        var name = $('#inputName').val();
+        var notes = $('#inputNotes').val();
+        addNote(name, notes);
+        window.location.replace("Catalog.html");
+      }
+    </script>
+     <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyARhG87dBROCnjACPhJMw89XX1yanOzZuc",
+    authDomain: "noteharvest-c626c.firebaseapp.com",
+    databaseURL: "https://noteharvest-c626c.firebaseio.com",
+    storageBucket: "noteharvest-c626c.appspot.com",
+    messagingSenderId: "695209653734"
+  };
+  firebase.initializeApp(config);
+  var db = firebase.database();
+  var notesRef = db.ref('notes/');
+  var usersRef = db.ref('users/');
+  var classesRef = db.ref('classes/');
+  var currentUser;
+</script>
+    <script type="text/javascript">
+      function addNote(class1, note) {
+          notesRef.child(class1 + "/" + currentUser.uid + "/").set({
+            notes: note,
+            name: class1,
+            username: currentUser.displayName
+          });
+          window.location.replace("Catalog.html")
+      }
+
+      function writeUserData(userId, name, email, imageUrl) {
+        db.ref('users/' + userId).set({
+          username: name,
+          email: email,
+          profile_picture : imageUrl
+        });
+      }
+      initApp = function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+          if (user) {
+            currentUser = user;
+            // User is signed in.
+            var displayName = user.displayName;
+            var email = user.email;
+            var emailVerified = user.emailVerified;
+            var photoURL = user.photoURL;
+            var uid = user.uid;
+            var providerData = user.providerData;
+
+            writeUserData(uid, displayName, email, photoURL);
+
+            user.getToken().then(function(accessToken) {
+              // document.getElementById('sign-in-status').textContent = 'Signed in';
+              // document.getElementById('sign-in').textContent = 'Sign out';
+              // document.getElementById('account-details').textContent = JSON.stringify({
+              //   displayName: displayName,
+              //   email: email,
+              //   emailVerified: emailVerified,
+              //   photoURL: photoURL,
+              //   uid: uid,
+              //   accessToken: accessToken,
+              //   providerData: providerData
+              // }, null, '  ');
+            });
+
+            // document.getElementById('email').innerHTML = email;
+          } else {
+            // User is signed out.
+            // document.getElementById('sign-in-status').textContent = 'Signed out';
+            // document.getElementById('sign-in').textContent = 'Sign in';
+            // document.getElementById('account-details').textContent = 'null';
+          }
+        }, function(error) {
+          console.log(error);
+        });
+      };
+
+      window.addEventListener('load', function() {
+        initApp()
+      });
+    </script>
+    <!-- <script type="text/javascript">
+      notesRef.on("child_added", function(snapshot, prevNoteKey) {
+        var classChildRef = notesRef.child(snapshot.key);
+        classChildRef.on("child_added", function(classSnap, prevClassCKey) {
+          var userChildRef = classChildRef.child(classSnap.key);
+          //console.log(classSnap.val());
+          userChildRef.on("child_added", function(userSnap, prevUserKey) {
+            var theNote = userSnap.val();
+            document.getElementById('notes').textContent += theNote;
+          })
+        })
+      });
+    </script> -->
+  </head>
+  <body>
+    <!-- Web Page Header -->
+    <header class="hero is-primary"
+            style="position: fixed; left: 0px; top: 0px;
+                   width: 100%; z-index: 100;
+                   padding: 0px 10px;">
+      <!-- Hero header: will stick at the top -->
+      <div class="hero-head">
+        <nav class="nav">
+          <div class="container">
+            <div class="nav-left">
+              <a class="nav-item">
+                <h1 class="title">CUNY Discourse</h1>
+              </a>
+            </div>
+            <div class="nav-right">
+              <div class="nav-item">
+                <nav class="tabs is-toggle is-boxed">
+                  <div class="container">
+                    <ul>
+                      <li>
+                        <a href="Catalog.html">Note Catalog</a>
+                      </li>
+                      <li class="is-active">
+                        <a>Note Input</a>
+                      </li>
+                    </ul>
+                  </div>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+    
+    <!-- Web Page Body -->
+    <div class="section">
+      <div class="container is-fluid"
+           style="margin-top: 50px;">
+        <div class="card is-fullwidth">
+          <header class="card-header">
+            <p class="card-header-title">
+              New Note
+            </p>
+          </header>
+          <div class="card-content">
+            <form class="container">
+              <span class="label">Name</span>
+              <input type="text"
+                     class="input"
+                     id="inputName" />
+              <span class="label">Notes</span>
+              <textarea type="text"
+                        class="textarea"
+                        id="inputNotes"></textarea>
+            </form>
+          </div>
+          <footer class="card-footer">
+            <a id="btnSubmit"
+               class="card-footer-item"
+               onclick="$('.modal').addClass('is-active')">
+              Submit
+            </a>
+          </footer>
+        </div>
+      </div>
+    </div>
+    
+    
+    <!-- Modal Submit Verification -->
+    <div class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-content">
+        <div class="box">
+          <h1 class="title is-2 is-centered">Confirm</h1>
+          <p style="margin-bottom: 10px;">Do you want to submit your notes?</p>
+          <div class="columns">
+            <div class="column is-half">
+              <div id="btnSubmitYes"
+                   class="button is-success is-fullwidth"
+                   onclick="submitData()">Yes</div>
+            </div>
+            <div class="column">
+              <div id="btbSubmitNo"
+                   class="button is-danger is-fullwidth"
+                   onclick="$('.modal').removeClass('is-active')">No</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Web Page Footer -->
+    <div class="footer">
+      Made with &lt;3 by CUNYSlackers
+    </div>
+  </body>
+</html>

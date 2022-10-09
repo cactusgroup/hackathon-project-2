@@ -1,0 +1,179 @@
+<html>
+  <head>
+    <title>CUNY Discourse | Note Catalog</title>
+    <link rel="stylesheet"
+          type="text/css"
+          href="css/bulma.css" />
+    <link rel="stylesheet"
+          type="text/css"
+          href="css/font-awesome.min.css" />
+    <script src="js/jquery-3.1.1.js"></script>
+    <script type="text/javascript">
+      function showSummary() {
+        // $('#modalSummary').addClass('is-active');
+        // name = $('#lblName').val();
+        // date = $('#lblDate').val();
+        window.location.replace("http://104.236.246.190");
+      }
+    </script>
+     <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyARhG87dBROCnjACPhJMw89XX1yanOzZuc",
+    authDomain: "noteharvest-c626c.firebaseapp.com",
+    databaseURL: "https://noteharvest-c626c.firebaseio.com",
+    storageBucket: "noteharvest-c626c.appspot.com",
+    messagingSenderId: "695209653734"
+  };
+  firebase.initializeApp(config);
+  var db = firebase.database();
+  var notesRef = db.ref('notes/');
+  var usersRef = db.ref('users/');
+  var classesRef = db.ref('classes/');
+  var currentUser;
+</script>
+    <script type="text/javascript">
+      function addNote(userId, class1, note) {
+          notesRef.child(class1 + "/").set( {
+            name: class1
+          })
+          notesRef.child(class1 + "/" + userId + "/").set({
+            name: currentUser.displayName,
+            notes: note
+          })
+      }
+
+      function writeUserData(userId, name, email, imageUrl) {
+        db.ref('users/' + userId).set({
+          username: name,
+          email: email,
+          profile_picture : imageUrl
+        });
+      }
+      initApp = function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+          if (user) {
+            currentUser = user;
+            // User is signed in.
+            var displayName = user.displayName;
+            var email = user.email;
+            var emailVerified = user.emailVerified;
+            var photoURL = user.photoURL;
+            var uid = user.uid;
+            var providerData = user.providerData;
+
+            writeUserData(uid, displayName, email, photoURL);
+
+            user.getToken().then(function(accessToken) {
+              // document.getElementById('sign-in-status').textContent = 'Signed in';
+              // document.getElementById('sign-in').textContent = 'Sign out';
+              // document.getElementById('account-details').textContent = JSON.stringify({
+              //   displayName: displayName,
+              //   email: email,
+              //   emailVerified: emailVerified,
+              //   photoURL: photoURL,
+              //   uid: uid,
+              //   accessToken: accessToken,
+              //   providerData: providerData
+              // }, null, '  ');
+            });
+
+            document.getElementById('email').innerHTML = email;
+          } else {
+            // User is signed out.
+            // document.getElementById('sign-in-status').textContent = 'Signed out';
+            // document.getElementById('sign-in').textContent = 'Sign in';
+            // document.getElementById('account-details').textContent = 'null';
+          }
+        }, function(error) {
+          console.log(error);
+        });
+      };
+
+      window.addEventListener('load', function() {
+        initApp()
+      });
+    </script>
+    <script type="text/javascript">
+
+      notesRef.on("child_added", function(snapshot, prevNoteKey) {
+        var classChildRef = notesRef.child(snapshot.key);
+        classChildRef.on("child_added", function(classSnap, prevClassCKey) {
+          var userChildRef = classChildRef.child(classSnap.key);
+          //console.log(classSnap.val());
+          userChildRef.on("child_added", function(userSnap, prevUserKey) {
+            var theNote = userSnap.val();
+            document.getElementById('notes').innerHTML = '<div class="box">          <a class="note"             href="#"             onclick="showSummary()">            <article class="media">              <div class="media-left">                <figure class="image is-64x64">                  <img src="'+currentUser.photoURL+'" alt="Image here" />                </figure>              </div>              <div class="media-content">                <div class="right">                  <div id="lblName"                       class="name">                    '+classSnap.val().name+'                 </div>                  <div id="lblDate"                       class="right">                    '+classSnap.val().username+'                  </div>                </div>              </div>              <div class="media-right">                <span class="icon" style="margin-top: 18px;">                  >                  <!--i class="fa fa-home"></i -->                </span>              </div>            </article>          </a>        </div>' ;
+          })
+        })
+      });
+    </script>
+  </head>
+  <body>
+    <!-- Web Page Header -->
+    <header class="hero is-primary"
+            style="position: fixed; left: 0px; top: 0px;
+                   width: 100%; z-index: 100;
+                   padding: 0px 10px;">
+      <!-- Hero header: will stick at the top -->
+      <div class="hero-head">
+        <nav class="nav">
+          <div class="container">
+            <div class="nav-left">
+              <a class="nav-item">
+                <h1 class="title">CUNY Discourse</h1>
+              </a>
+            </div>
+            <div class="nav-right">
+              <div class="nav-item">
+                <nav class="tabs is-toggle is-boxed">
+                  <div class="container">
+                    <ul>
+                      <li class="is-active">
+                        <a>Note Catalog</a>
+                      </li>
+                      <li>
+                        <a href="Input.html">Note Input</a>
+                      </li>
+                    </ul>
+                  </div>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+    
+    <!-- Web Page Body -->
+    <div class="section">
+      <div id="notes" class="container is-fluid"
+           style="margin-top: 50px;">
+      </div>
+    </div>
+    
+    <!-- Modal Summary -->
+    <div id="modalSummary"
+         class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-content">
+        <div class="box">
+          <h1 class="title is-2 is-centered">Summary for [Name] [Date]</h1>
+          <div class="section">
+            <div id="content" class="content">
+              [content goes here]
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-close"
+           onclick="$('#modalSummary').removeClass('is-active')"></div>
+    </div>
+    
+    <!-- Web Page Footer -->
+    <div class="footer">
+      Made with &lt;3 by CUNYSlackers
+    </div>
+  </body>
+</html>

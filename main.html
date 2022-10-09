@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>My CUNY Discourse</title>
+    <!-- *******************************************************************************************
+       * TODO(DEVELOPER): Paste the initialization snippet from:
+       * Firebase Console > Overview > Add Firebase to your web app. *
+       ***************************************************************************************** -->
+    <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyARhG87dBROCnjACPhJMw89XX1yanOzZuc",
+    authDomain: "noteharvest-c626c.firebaseapp.com",
+    databaseURL: "https://noteharvest-c626c.firebaseio.com",
+    storageBucket: "noteharvest-c626c.appspot.com",
+    messagingSenderId: "695209653734"
+  };
+  firebase.initializeApp(config);
+  var db = firebase.database();
+  var notesRef = db.ref('notes/');
+  var usersRef = db.ref('users/');
+  var classesRef = db.ref('classes/');
+  var currentUser;
+</script>
+    <script type="text/javascript">
+      function addNote(userId, class1, note) {
+          notesRef.child(class1 + "/" + userId + "/").set({
+            notes: note
+          })
+      }
+
+      function writeUserData(userId, name, email, imageUrl) {
+        db.ref('users/' + userId).set({
+          username: name,
+          email: email,
+          profile_picture : imageUrl
+        });
+      }
+      initApp = function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+          if (user) {
+            currentUser = user;
+            // User is signed in.
+            var displayName = user.displayName;
+            var email = user.email;
+            var emailVerified = user.emailVerified;
+            var photoURL = user.photoURL;
+            var uid = user.uid;
+            var providerData = user.providerData;
+
+            writeUserData(uid, displayName, email, photoURL);
+
+            user.getToken().then(function(accessToken) {
+              // document.getElementById('sign-in-status').textContent = 'Signed in';
+              // document.getElementById('sign-in').textContent = 'Sign out';
+              // document.getElementById('account-details').textContent = JSON.stringify({
+              //   displayName: displayName,
+              //   email: email,
+              //   emailVerified: emailVerified,
+              //   photoURL: photoURL,
+              //   uid: uid,
+              //   accessToken: accessToken,
+              //   providerData: providerData
+              // }, null, '  ');
+            });
+
+            document.getElementById('email').innerHTML = email;
+          } else {
+            // User is signed out.
+            // document.getElementById('sign-in-status').textContent = 'Signed out';
+            // document.getElementById('sign-in').textContent = 'Sign in';
+            // document.getElementById('account-details').textContent = 'null';
+          }
+        }, function(error) {
+          console.log(error);
+        });
+      };
+
+      window.addEventListener('load', function() {
+        initApp()
+      });
+    </script>
+    <script type="text/javascript">
+      notesRef.on("child_added", function(snapshot, prevNoteKey) {
+        var classChildRef = notesRef.child(snapshot.key);
+        classChildRef.on("child_added", function(classSnap, prevClassCKey) {
+          var userChildRef = classChildRef.child(classSnap.key);
+          //console.log(classSnap.val());
+          userChildRef.on("child_added", function(userSnap, prevUserKey) {
+            var theNote = userSnap.val();
+            document.getElementById('notes').textContent += theNote;
+          })
+        })
+      });
+    </script>
+  </head>
+  <body>
+    <h1>My CUNY Discourse</h1>
+
+    <!-- div id="email"></div>
+    <div id="sign-in-status"></div>
+    <div id="sign-in"></div>
+    <div id="account-details"></div> -->
+    <div id = "notes">
+
+    </div>
+  </body>
+</html>
